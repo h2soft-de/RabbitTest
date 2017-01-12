@@ -11,41 +11,49 @@ namespace RabbitTestCore
 {
     public class Program
     {        
-        static Publisher m_publisher;
-        static Subscriber m_subscriber;
-
         public static void Main(string[] args)
         {            
             Console.WriteLine("Start RabbitMQ test ...");
 
             IConnection connection;
+            IDisposable service = null;
 
             if (args.Length == 2)
             {
                 string host = args[0];
                 connection = ConnectionBuilder.CreateConnection( host, "admin","qwer$asdf!1");
-               
-                if (args[1] == "pub")
+
+                Task task;
+
+                switch (args[1])
                 {
-                    Task t = Task.Run(() => { m_publisher = new Publisher(connection); });                    
+                    case "pub":
+                        task = Task.Run(() => { service = new Publisher(connection); });
+                        break;
+
+                    case "sub":
+                        task = Task.Run(() => { service = new Subscriber(connection); });
+                        break;
+
+                    case "nqs":
+                        task = Task.Run(() => { service = new NamedQueue.Sender(connection); });
+                        break;
+
+                    case "nql":
+                        task = Task.Run(() => { service = new NamedQueue.Listener(connection); });
+                        break;
+
+                    default:
+                        break;
                 }
 
-                if (args[1] == "sub")
-                {
-                    Task t = Task.Run(() => { m_subscriber = new Subscriber(connection); });                    
-                }
 
                 Console.WriteLine("Press [enter] to exit.");
                 Console.ReadLine();
 
-                if (m_subscriber != null)
+                if (service != null)
                 {
-                    m_subscriber.Dispose();
-                }
-
-                if (m_publisher != null)
-                {
-                    m_publisher.Dispose();
+                    service.Dispose();
                 }
 
                 if (connection != null)

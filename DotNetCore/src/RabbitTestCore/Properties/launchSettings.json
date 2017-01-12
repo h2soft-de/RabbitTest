@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "RabbitTestCore": {
+      "commandName": "Project",
+      "commandLineArgs": "localhost sub"
+    }
+  }
+}
